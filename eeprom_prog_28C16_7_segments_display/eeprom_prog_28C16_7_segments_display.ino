@@ -51,7 +51,7 @@ void writeEEPROM(int address, byte data) {
 }
 
 void printContents() {
-  for (int base = 0; base <= 255; base += 16) {
+  for (int base = 0; base <= 768; base += 16) {
     byte data[16];
 
     for (int offset = 0; offset <= 15; offset += 1) {
@@ -69,6 +69,15 @@ void printContents() {
   }
 }
 
+// 4-bit hex for 0-F, common anode, 7-segment display.
+//byte data[] = { 0x81, 0xCF, 0x92, 0x86, 0xCC, 0xA4, 0xA0, 0x8F, 0x80, 0x84, 0x88, 0xE0, 0xB1, 0xC2, 0xB0, 0xB8 };
+
+// 4-bit hex for 0-F, common cathode, 7-segment display.
+//byte data[] = { 0x7E, 0x30, 0x6D, 0x79, 0x33, 0x5B, 0x5F, 0x70, 0x7F, 0x7B, 0x77, 0x1F, 0x4E, 0x3D, 0x4F, 0x47 };
+
+// 4-bit hex for 0-9, common cathode, 7-segment display.
+byte data[] = { 0x7E, 0x30, 0x6D, 0x79, 0x33, 0x5B, 0x5F, 0x70, 0x7F, 0x7B };
+
 void setup() {
   pinMode(SHIFT_DATA, OUTPUT);
   pinMode(SHIFT_CLK, OUTPUT);
@@ -79,8 +88,11 @@ void setup() {
 
   Serial.begin(57600);
 
-  for (int address = 0; address <= 255; address +=1) {
-    writeEEPROM(address, 0x00);  
+  for (int value = 0; value < 256; value += 1) {
+    writeEEPROM(value +   0, data[(value /   1) % 10]);
+    writeEEPROM(value + 256, data[(value /  10) % 10]);
+    writeEEPROM(value + 512, data[(value / 100) % 10]);
+    writeEEPROM(value + 768, 0);
   }
 
   printContents();
