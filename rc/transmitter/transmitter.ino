@@ -1,66 +1,79 @@
-// Load in the libraries
+
+// SimpleTx - the master or the transmitter
+
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>
 
-// Set the CE & CSN pins
+
 #define CE_PIN   9
 #define CSN_PIN 10
 
-// This is the address used to send/receive
-const byte rxAddr[6] = "00001";
+const byte slaveAddress[5] = {'R', 'x', 'A', 'A', 'A'};
 
-// Create a Radio
-RF24 radio(CE_PIN, CSN_PIN); 
+
+RF24 radio(CE_PIN, CSN_PIN); // Create a Radio
+
+char dataToSend[10] = "Message 0";
+char txNum = '0';
+
+
+unsigned long currentMillis;
+unsigned long prevMillis;
+unsigned long txIntervalMillis = 1000; // send once per second
+
 
 void setup() {
-  
-  // Start up the Serial connection
-  while (!Serial);
+
   Serial.begin(9600);
-  
-  // Start the Radio!
+
+  Serial.println("SimpleTx Starting");
+
   radio.begin();
-  
-  // Power setting. Due to likelihood of close proximity of the devices, set as RF24_PA_MIN (RF24_PA_MAX is default)
-  radio.setPALevel(RF24_PA_MIN); // RF24_PA_MIN, RF24_PA_LOW, RF24_PA_HIGH, RF24_PA_MAX
-  
-  // Slower data rate for better range
   radio.setDataRate( RF24_250KBPS ); // RF24_250KBPS, RF24_1MBPS, RF24_2MBPS
-  
-  // Number of retries and set tx/rx address
-  radio.setRetries(15, 15);
-  radio.openWritingPipe(rxAddr);
+  radio.setPALevel(RF24_PA_MIN);   // RF24_PA_MIN ,RF24_PA_LOW, RF24_PA_HIGH, RF24_PA_MAX
 
-  // Stop listening, so we can send!
-  radio.stopListening();
+  radio.setRetries(3, 5); // delay, count
+  radio.openWritingPipe(slaveAddress);
 }
-int count = 0;
+
+//====================
+
 void loop() {
+  currentMillis = millis();
+  if (currentMillis - prevMillis >= txIntervalMillis) {
+    send();
+    prevMillis = millis();
+  }
+}
 
-  // Set up a message and a timestamp to it using millis()
-  String str = ""; 
-  count = count + 1;
-  str += String( count );
-  
-  // http://stackoverflow.com/questions/7383606/converting-an-int-or-string-to-a-char-array-on-arduino
-  // Length (with one extra character for the null terminator)
-  int str_len = str.length() + 1; 
-  
-  // Prepare the character array (the buffer) 
-  char char_array[str_len];
-  
-  // Copy it over 
-  str.toCharArray(char_array, str_len);
+//====================
 
-  // Ace, let's now send the message
-  radio.write(&char_array, sizeof(char_array));
-  
-  // Let the ourside world know..
-  Serial.print("Sent Message: ");
-  Serial.print( char_array );
-  Serial.println("");
-  
-  // Wait a short while before sending the other one
-  delay(500);
+void send() {
+
+  bool rslt;
+  rslt = radio.write( &dataToSend, sizeof(dataToSend) );
+  // Always use sizeof() as it gives the size as the number of bytes.
+  // For example if dataToSend was an int sizeof() would correctly return 2
+
+  Serial.print("Data Sent ");
+  Serial.print(dataToSend);
+  if (rslt) {
+    Serial.println("  Acknowledge received");
+    updateMessage();
+  }
+  else {
+    Serial.println("  Tx failed");
+  }
+}
+
+//================
+
+void updateMessage() {
+  // so you can see that new data is being sent
+  txNum += 1;
+  if (txNum > '9') {
+    txNum = '0';
+  }
+  dataToSend[8] = txNum;
 }
