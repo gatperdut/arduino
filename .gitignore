@@ -1,5 +1,4 @@
 libraries
 arduino-1.8.13
-arduino/radiocar/model/Breakdown
-*.stl
-.blend1
+radiocar/model/Breakdown
+*.blend1
