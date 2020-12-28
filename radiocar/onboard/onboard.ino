@@ -25,8 +25,8 @@ int speedIndex = 2;
 
 VarSpeedServo myservo;
 
-int angles[] = { 0, 45, 90, 135, 180 };
-int angleindex = 2;
+int angles[] = { 51, 64, 77, 90, 103, 116, 129 };
+int angleindex = 3;
 
 // #####
 // Radio
@@ -89,8 +89,8 @@ void moveServo(int delta) {
   if (angleindex < 0) {
     angleindex = 0;
   }
-  if (angleindex > 4) {
-    angleindex = 4;
+  if (angleindex > 6) {
+    angleindex = 6;
   }
   Serial.print("Servo angle: ");
   Serial.println(angles[angleindex]);
@@ -127,10 +127,10 @@ void loop() {
       moveServo(+1);
     }
     if (!strcmp(data.text, "FORWARD")) {
-      setStepperSpeed(-1);
+      setStepperSpeed(+1);
     }
     if (!strcmp(data.text, "BACKWARD")) {
-      setStepperSpeed(+1);
+      setStepperSpeed(-1);
     }
   }
   stepper.setSpeed(speeds[speedIndex]);
