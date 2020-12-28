@@ -1,19 +1,43 @@
 #include <VarSpeedServo.h> 
+#include <AccelStepper.h>
 #include <SPI.h>
 #include "RF24.h"
 #include <printf.h>
 
-//#define CE_PIN 53 // MEGA
-#define CE_PIN 10 // NANO
-#define CSN_PIN 7
+// #######
+// Stepper
+#define STEPPER_PIN_1 A0 // IN1 on the ULN2003 driver
+#define STEPPER_PIN_2 A1
+#define STEPPER_PIN_3 A2
+#define STEPPER_PIN_4 A3
 
-#define SERVO_PIN 9
+#define MotorInterfaceType 8
+
+AccelStepper stepper(MotorInterfaceType, STEPPER_PIN_1, STEPPER_PIN_3, STEPPER_PIN_2, STEPPER_PIN_4);
+
+int speeds[] = { -1000, -500, 0, 500, 1000 };
+
+int speedIndex = 2;
+
+// #####
+// Servo
+#define SERVO_PIN 6
 
 VarSpeedServo myservo;
 
+int angles[] = { 0, 45, 90, 135, 180 };
+int angleindex = 2;
+
+// #####
+// Radio
+//#define CE_PIN 53 // MEGA
+#define CE_PIN 10 // NANO
+#define CSN_PIN 7
 RF24 myRadio (CE_PIN, CSN_PIN);
 byte addresses[][6] = {"0"};
 
+// #######
+// Message
 struct package {
   int count = 0;
   char text[100] = "empty";
@@ -21,17 +45,18 @@ struct package {
 typedef struct package Package;
 Package data;
 
-int angles[] = { 90, 135, 180, 135, 90, 45, 0, 45 };
-int angle = -1;
-
 void setupSerial() {
   Serial.begin(9600);
   while(!Serial);
 }
 
+void setupStepper() {
+  stepper.setMaxSpeed(1000);
+}
+
 void setupServo() {
   myservo.attach(SERVO_PIN);
-  move();
+  myservo.write(angles[angleindex], 30);
 }
 
 void setupRadio() {
@@ -50,19 +75,39 @@ void setupRadio() {
 void setup() {
   setupSerial();
 
+  setupStepper();
+
   setupRadio();
 
   setupServo();
 
-  Serial.println("Car Controller Listening...");
+  Serial.println("On-board Controller Listening...");
 } 
 
-void move() {
-  angle = (angle + 1) % 8;
-  Serial.print("Move to ");
-  Serial.println(angles[angle]);
-  myservo.write(angles[angle], 30);
+void moveServo(int delta) {
+  angleindex += delta;
+  if (angleindex < 0) {
+    angleindex = 0;
+  }
+  if (angleindex > 4) {
+    angleindex = 4;
+  }
+  Serial.print("Servo angle: ");
+  Serial.println(angles[angleindex]);
+  myservo.write(angles[angleindex], 30);
   //myservo.wait();
+}
+
+void setStepperSpeed(int delta) {
+  speedIndex += delta;
+  if (speedIndex < 0) {
+    speedIndex = 0;
+  }
+  if (speedIndex > 4) {
+    speedIndex = 4;
+  }
+  Serial.print("Stepper speed: ");
+  Serial.println(speeds[speedIndex]);
 }
 
 void loop() {
@@ -75,8 +120,19 @@ void loop() {
     Serial.print(" ");
     Serial.println(data.count);
     
-    //if (data.text == "LEFT") {
-      move();
-    //}
+    if (!strcmp(data.text, "LEFT")) {
+      moveServo(-1);
+    }
+    if (!strcmp(data.text, "RIGHT")) {
+      moveServo(+1);
+    }
+    if (!strcmp(data.text, "FORWARD")) {
+      setStepperSpeed(-1);
+    }
+    if (!strcmp(data.text, "BACKWARD")) {
+      setStepperSpeed(+1);
+    }
   }
+  stepper.setSpeed(speeds[speedIndex]);
+  stepper.runSpeed();
 }

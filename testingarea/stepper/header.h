@@ -3,10 +3,10 @@
 
 #include <AccelStepper.h>
 
-#define motorPin1  8      // IN1 on the ULN2003 driver
-#define motorPin2  9      // IN2
-#define motorPin3  10     // IN3
-#define motorPin4  11     // IN4
+#define motorPin1  A0      // IN1 on the ULN2003 driver
+#define motorPin2  A1     // IN2
+#define motorPin3  A2     // IN3
+#define motorPin4  A3     // IN4
 
 #define MotorInterfaceType 8
 
