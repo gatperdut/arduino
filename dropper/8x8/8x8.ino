@@ -6,7 +6,10 @@
 #define RD 4
 #define CD 5
 
-const byte grid[][8] = {
+byte ndrops = 0;
+byte drops[64][2];
+
+const byte initialGrid[8][8] = {
   {1,1,1,1,0,0,0,1},
   {1,0,0,1,0,0,0,0},
   {1,0,0,1,0,0,0,0},
@@ -17,9 +20,59 @@ const byte grid[][8] = {
   {1,0,0,0,0,0,0,1}
 };
 
-bool done = false;
+byte grid[8][8];
+
+void setupDrops() {
+  for (byte row = 0; row < 8; row++) {
+    for (byte col = 0; col < 8; col++) {
+      if (initialGrid[row][col]) {
+        drops[ndrops][0] = 7 - row;
+        drops[ndrops][1] = col;
+        ndrops++;
+      }
+    }
+  }
+}
+
+void updateGrid() {
+  for (byte row = 0; row < 8; row++) {
+    for (byte col = 0; col < 8; col++) {
+      grid[row][col] = 0;
+    }
+  }
+
+  for (byte i = 0; i < ndrops; i++) {
+    grid[drops[i][0]][drops[i][1]] = 1;
+  }
+}
+
+void updateGravity() {
+  for (byte i = 0; i < ndrops; i++) {
+    if (drops[i][0] == 0) {
+      continue;
+    }
+
+    if (grid[drops[i][0] - 1][drops[i][1]]) {
+      continue;
+    }
+
+    drops[i][0] = drops[i][0] - 1;
+  }
+}
+
+void trackTime() {
+  static const unsigned long REFRESH_INTERVAL = 1000; // ms
+  static unsigned long lastRefreshTime = 0;
+  
+  if(millis() - lastRefreshTime >= REFRESH_INTERVAL) {
+    lastRefreshTime += REFRESH_INTERVAL;
+    updateGravity();
+  }
+}
+
 
 void setup() {
+  setupDrops();
   Serial.begin(57600);
   
   pinMode(STCP_R, OUTPUT);
@@ -30,25 +83,11 @@ void setup() {
   pinMode(CD, OUTPUT);
 }
 
-void shiftOutRow(byte value) {
-  shiftOut(RD, SHCP_R, MSBFIRST, value & B11111111); 
-
-  digitalWrite(STCP_R, LOW);
-  digitalWrite(STCP_R, HIGH);
-  digitalWrite(STCP_R, LOW);
-}
-
-void shiftOutCol(byte value) {
-  shiftOut(CD, SHCP_C, MSBFIRST, value & B11111111); 
-
-  digitalWrite(STCP_C, LOW);
-  digitalWrite(STCP_C, HIGH);
-  digitalWrite(STCP_C, LOW);
-}
 
 void loop() {
-//  shiftOutRow(B11111111);
-//  shiftOutCol(B00010101);
+  trackTime();
+  updateGrid();
+  
   for (byte row = 0; row < 8; row++) {
     byte rowB = B00000000;
     byte colB = B00000000;
@@ -58,20 +97,12 @@ void loop() {
         rowB = B00000001 << row;
       }
       else {
-        colB = colB + (B10000000 >> col);
+        colB = colB | (B10000000 >> col);
       }
       
-    }
-    if (!done) {
-      Serial.print("Col:");
-      Serial.println(colB, BIN);
-      Serial.print("Row:");
-      Serial.println(rowB, BIN);
-      Serial.println();
     }
     
     shiftOutRow(rowB);
     shiftOutCol(colB);    
   }
-  done = true;
 }
