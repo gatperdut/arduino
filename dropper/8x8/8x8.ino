@@ -1,3 +1,7 @@
+#include <Wire.h>
+int ADXL345 = 0x53;
+float X, Y, Z;
+
 #define STCP_R 2
 #define STCP_C 7
 #define SHCP_R 3
@@ -8,6 +12,8 @@
 
 int ndrops = 0;
 int drops[64][2];
+
+int currentorient = -1;
 
 const int path45[][2] = { {0, 7}, {0, 6}, {1, 7}, {0, 5}, {1, 6}, {2, 7}, {0, 4}, {1, 5}, {2, 6}, {3, 7}, {0, 3}, {1, 4}, {2, 5}, {3, 6}, {4, 7}, {0, 2}, {1, 3}, {2, 4}, {3, 5}, {4, 6}, {5, 7}, {0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 5}, {5, 6}, {6, 7}, {0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}, {7, 7}, {1, 0}, {2, 1}, {3, 2}, {4, 3}, {5, 4}, {6, 5}, {7, 6}, {2, 0}, {3, 1}, {4, 2}, {5, 3}, {6, 4}, {7, 5}, {3, 0}, {4, 1}, {5, 2}, {6, 3}, {7, 4}, {4, 0}, {5, 1}, {6, 2}, {7, 3}, {5, 0}, {6, 1}, {7, 2}, {6, 0}, {7, 1}, {7, 0} };
 
@@ -63,13 +69,20 @@ void trackTime() {
   
   if(millis() - lastRefreshTime >= REFRESH_INTERVAL) {
     lastRefreshTime += REFRESH_INTERVAL;
-    updateGravity0();
+    currentorient = orientation();
+
+    if (currentorient == 1) {
+      updateGravity0();
+    }
+    else if (currentorient == 0) {
+      updateGravity45();
+    }
   }
 }
 
-
 void setup() {
   randomSeed(analogRead(0));
+  setupWire();
   
   setupDrops();
   updateGrid();

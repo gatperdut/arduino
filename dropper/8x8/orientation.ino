@@ -1,8 +1,4 @@
-#include <Wire.h>  // Wire library - used for I2C communication
-int ADXL345 = 0x53; // The ADXL345 sensor I2C address
-float X, Y, Z;  // Outputs
-void setup() {
-  Serial.begin(57600);
+void setupWire() {
   Wire.begin();
   Wire.beginTransmission(ADXL345);
   Wire.write(0x2D);
@@ -32,7 +28,7 @@ boolean plusOne(float value) {
   return 0.8 < value && value < 1.2;
 }
 
-void orientation() {
+int orientation() {
   // === Read acceleromter data === //
   Wire.beginTransmission(ADXL345);
   Wire.write(0x32); // Start with register 0x32 (ACCEL_XOUT_H)
@@ -45,47 +41,39 @@ void orientation() {
   Z = ( Wire.read()| Wire.read() << 8); // Z-axis value
   Z = Z/256;
 
+//  Serial.print(" ");
+//  Serial.print(X);
+//  Serial.print(" ");
+//  Serial.println(Y);
+
+  int result = -1;
+
   if (minusOne(X)) {
-    Serial.println("B");
+    result = 1;
   }
   else if (plusOne(X)) {
-    Serial.print("F");
+    result = 5;
   }
   else if (minusOne(Y)) {
-    Serial.print("H");
+    result = 7;
   }
   else if (plusOne(Y)) {
-    Serial.print("D");
+    result = 3;
   }
   else if (minusHalf(X) && minusHalf(Y)) {
-    Serial.print("A");
+    result = 0;
   }
   else if (minusHalf(X) && plusHalf(Y)) {
-    Serial.print("C");
+    result = 2;
   }
   else if (plusHalf(X) && minusHalf(Y)) {
-    Serial.print("G");
+    result = 6;
   }
   else if (plusHalf(X) && plusHalf(Y)) {
-    Serial.print("E");
-  }
-  else {
-    Serial.print("UNKNOWN");
+    result = 4;
   }
 
-  Serial.print(" ");
-  Serial.print(X);
-  Serial.print(" ");
-  Serial.println(Y);
-}
+  Serial.println(result);
 
-
-void loop() {
-  static const unsigned long REFRESH_INTERVAL = 1000; // ms
-  static unsigned long lastRefreshTime = 0;
-  
-  if(millis() - lastRefreshTime >= REFRESH_INTERVAL) {
-    lastRefreshTime += REFRESH_INTERVAL;
-    orientation();
-  }
+  return result;
 }
