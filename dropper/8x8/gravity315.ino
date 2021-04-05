@@ -1,5 +1,6 @@
-void updateGravity45() {
+void updateGravity315() {
   int side;
+  int side2;
   
   for (int i = 0; i < ndrops; i++) {
     if (drops[i][0] == 0 && drops[i][1] == 7) {
@@ -34,8 +35,8 @@ void updateGravity45() {
           drops[i][0]--;
         }
         else {
-          side = random(2);
-          if (side == 0) {
+          side2 = random(2);
+          if (side2 == 0 && drops[i][1] > 0) {
             if (!grid[drops[i][0] - 1][drops[i][1] - 1]) {
               drops[i][0]--;
               drops[i][1]--;
@@ -54,8 +55,8 @@ void updateGravity45() {
           drops[i][1]++;
         }
         else {
-          side = random(2);
-          if (side == 0) {
+          side2 = random(2);
+          if (side2 == 0 && drops[i][1] > 0) {
             if (!grid[drops[i][0] - 1][drops[i][1] - 1]) {
               drops[i][0]--;
               drops[i][1]--;

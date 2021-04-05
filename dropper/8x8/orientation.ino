@@ -29,16 +29,15 @@ boolean plusOne(float value) {
 }
 
 int orientation() {
-  // === Read acceleromter data === //
   Wire.beginTransmission(ADXL345);
-  Wire.write(0x32); // Start with register 0x32 (ACCEL_XOUT_H)
+  Wire.write(0x32);
   Wire.endTransmission(false);
-  Wire.requestFrom(ADXL345, 6, true); // Read 6 registers total, each axis value is stored in 2 registers
-  X = ( Wire.read()| Wire.read() << 8); // X-axis value
-  X = X/256; //For a range of +-2g, we need to divide the raw values by 256, according to the datasheet
-  Y = ( Wire.read()| Wire.read() << 8); // Y-axis value
+  Wire.requestFrom(ADXL345, 6, true);
+  X = ( Wire.read()| Wire.read() << 8);
+  X = X/256;
+  Y = ( Wire.read()| Wire.read() << 8);
   Y = Y/256;
-  Z = ( Wire.read()| Wire.read() << 8); // Z-axis value
+  Z = ( Wire.read()| Wire.read() << 8);
   Z = Z/256;
 
 //  Serial.print(" ");
@@ -74,6 +73,5 @@ int orientation() {
   }
 
   Serial.println(result);
-
   return result;
 }

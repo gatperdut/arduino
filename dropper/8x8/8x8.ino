@@ -66,16 +66,24 @@ void updateGrid() {
 void trackTime() {
   static const unsigned long REFRESH_INTERVAL = 1000; // ms
   static unsigned long lastRefreshTime = 0;
-  
   if(millis() - lastRefreshTime >= REFRESH_INTERVAL) {
     lastRefreshTime += REFRESH_INTERVAL;
     currentorient = orientation();
 
-    if (currentorient == 1) {
+    if (currentorient == 0) {
+      updateGravity315();
+    }
+    else if (currentorient == 1) {
       updateGravity0();
     }
-    else if (currentorient == 0) {
-      updateGravity45();
+    else if (currentorient == 3) {
+      updateGravity90();
+    }
+    else if (currentorient == 5) {
+      updateGravity180();
+    }
+    else if (currentorient == 7) {
+      updateGravity270();
     }
   }
 }
