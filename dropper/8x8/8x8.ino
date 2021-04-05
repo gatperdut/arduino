@@ -76,8 +76,14 @@ void trackTime() {
     else if (currentorient == 1) {
       updateGravity0();
     }
+    else if (currentorient == 2) {
+      updateGravity45();
+    }
     else if (currentorient == 3) {
       updateGravity90();
+    }
+    else if (currentorient == 4) {
+      updateGravity135();
     }
     else if (currentorient == 5) {
       updateGravity180();

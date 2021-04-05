@@ -72,6 +72,6 @@ int orientation() {
     result = 4;
   }
 
-  Serial.println(result);
+//  Serial.println(result);
   return result;
 }
