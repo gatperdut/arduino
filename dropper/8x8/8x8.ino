@@ -69,7 +69,7 @@ void trackTime() {
   if(millis() - lastRefreshTime >= REFRESH_INTERVAL) {
     lastRefreshTime += REFRESH_INTERVAL;
     currentorient = orientation();
-
+Serial.println(currentorient);
     if (currentorient == 0) {
       updateGravity315();
     }
@@ -87,6 +87,9 @@ void trackTime() {
     }
     else if (currentorient == 5) {
       updateGravity180();
+    }
+    else if (currentorient == 6) {
+      updateGravity225();
     }
     else if (currentorient == 7) {
       updateGravity270();
